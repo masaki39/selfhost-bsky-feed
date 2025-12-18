@@ -94,8 +94,8 @@ export default {
       const feedGenDid = env.FEED_GENERATOR_DID ?? "did:example:feed";
       return new Response(
         JSON.stringify({
-          uri: feedGenUri,
           did: feedGenDid,
+          feeds: [{ uri: feedGenUri }],
         }),
         {
           status: 200,
