@@ -54,6 +54,6 @@ BSKY_SEARCH_LANG=ja
 
 ## GitHub Actions
 
-- `.github/workflows/update-feed.yml` runs every 5 minutes and can be triggered manually.
+- `.github/workflows/00_update-feed.yml` runs every 5 minutes and can be triggered manually.
 - Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job.
 - Output currently stays in the workflow workspace; add commit/publish logic later to push to Pages or Cloudflare Workers.
