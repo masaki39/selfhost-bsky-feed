@@ -12,6 +12,7 @@ Docs note: The primary documentation is maintained in Japanese (`doc/README-ja.m
    - `BSKY_APP_HANDLE` (e.g., `yourname.bsky.social`)  
    - `BSKY_APP_PASSWORD`  
    - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG` (single or comma-separated like `ja,en`)
+2) Ensure Actions has the needed permissions: `contents: read/write`, `pages: write`, `id-token: write` (already set in the workflows).
 2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
 3) `01_update-feed.yml` publishes `data/feed.json` to GitHub Pages automatically.
 
