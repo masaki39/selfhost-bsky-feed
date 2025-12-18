@@ -5,11 +5,14 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "start": "npm run build && node dist/index.js"
+    "start": "npm run build && node dist/index.js",
+    "worker:dev": "wrangler dev src/worker.ts",
+    "worker:publish": "wrangler publish src/worker.ts"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.55.0"
   },
   "dependencies": {
     "@atproto/api": "^0.18.8",
