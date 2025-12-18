@@ -17,9 +17,13 @@ Docs note: The primary documentation is maintained in Japanese (`doc/README-ja.m
 
 Cloudflare Workers publish (optional):
 1) Install Wrangler locally (`npm install`) and set secrets in the repo: `CF_API_TOKEN`, `CF_ACCOUNT_ID`.  
-2) Set `FEED_URL` in `wrangler.toml` (or as a Worker var) to point to your published JSON (e.g., GitHub Pages or raw GitHub URL).  
-3) Deploy manually with `npm run worker:publish` or add a workflow step to run that after the feed JSON is available.
-4) The provided workflow `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER`/`GITHUB_REPO` from GitHub context, optionally `FEED_URL` from Secrets, and sets Worker name to `${{ github.event.repository.name }}-worker`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
+2) Deploy manually with `npm run worker:publish` or rely on the provided workflow after feed generation.
+3) The provided workflow `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER`/`GITHUB_REPO` from GitHub context and sets Worker name to `${{ github.event.repository.name }}-worker`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
+
+GitHub Pages to host `data/feed.json` (optional but recommended for the Worker):
+1) Enable Pages → Build and deployment: “GitHub Actions”.  
+2) Add a deploy step after feed generation to upload `data/feed.json` as a Pages artifact (e.g., `actions/upload-pages-artifact@v3` + `actions/deploy-pages@v4`).  
+3) Worker can consume either the Pages URL or the raw GitHub URL; by default it builds a raw URL from `GITHUB_OWNER`/`GITHUB_REPO` (public repos only).
 
 ## For developers (local)
 
@@ -53,7 +57,7 @@ BSKY_SEARCH_LANG=ja
 
 ## GitHub Actions
 
-- `.github/workflows/01_update-feed.yml` runs every 5 minutes and can be triggered manually.
-- `.github/workflows/02_publish-worker.yml` runs manually or after `01_update-feed.yml` succeeds; injects repo context for `FEED_URL`.
+- `.github/workflows/01_update-feed.yml` runs every 5 minutes and can be triggered manually. It builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
+- `.github/workflows/02_publish-worker.yml` runs manually or after `01_update-feed.yml` succeeds; injects repo context for the Worker and uses GitHub Pages (or raw) URL derived from owner/repo.
 - Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job.
-- Output currently stays in the workflow workspace; add commit/publish logic later to push to Pages or Cloudflare Workers.
+- Output is published to GitHub Pages (via Actions). Worker defaults to fetching `https://<owner>.github.io/<repo>/data/feed.json` (public repos).
