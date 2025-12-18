@@ -41,27 +41,33 @@ async function main() {
   const displayName = process.env.FEED_DISPLAY_NAME ?? repoName;
   const description = process.env.FEED_DESCRIPTION ?? repoName;
   const feedEndpoint = process.env.FEED_ENDPOINT;
+  const serviceDid =
+    process.env.FEED_SERVICE_DID ??
+    (feedEndpoint ? `did:web:${new URL(feedEndpoint).host}` : undefined);
 
   const agent = new BskyAgent({ service });
   await agent.login({ identifier, password });
 
-  const did = await resolveDid(agent, identifier);
+  const ownerDid = await resolveDid(agent, identifier);
+  if (!serviceDid) {
+    throw new Error("FEED_SERVICE_DID or FEED_ENDPOINT is required");
+  }
   const record = {
     $type: "app.bsky.feed.generator",
-    did,
+    did: serviceDid,
     displayName,
     description,
     createdAt: new Date().toISOString(),
   };
 
   await agent.com.atproto.repo.putRecord({
-    repo: did,
+    repo: ownerDid,
     collection: "app.bsky.feed.generator",
     rkey,
     record,
   });
 
-  const uri = `at://${did}/app.bsky.feed.generator/${rkey}`;
+  const uri = `at://${ownerDid}/app.bsky.feed.generator/${rkey}`;
   console.log(`Upserted feed generator: ${uri}`);
   if (feedEndpoint) {
     console.log(`Feed endpoint: ${feedEndpoint}`);

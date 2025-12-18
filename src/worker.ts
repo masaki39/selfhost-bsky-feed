@@ -4,6 +4,7 @@ type Env = {
   FEED_URL?: string;
   FEED_GENERATOR_URI?: string;
   FEED_GENERATOR_DID?: string;
+  FEED_SERVICE_DID?: string;
 };
 
 type FeedFile = {
@@ -28,6 +29,12 @@ function resolveFeedUrl(env: Env) {
   throw new Error("GITHUB_OWNER and GITHUB_REPO must be provided");
 }
 
+function buildServiceDid(env: Env, baseUrl: string) {
+  if (env.FEED_SERVICE_DID) return env.FEED_SERVICE_DID;
+  const host = new URL(baseUrl).host;
+  return `did:web:${host}`;
+}
+
 function paginate<T>(items: T[], limit: number, cursor?: string) {
   const offset = cursor ? Number.parseInt(cursor, 10) || 0 : 0;
   const slice = items.slice(offset, offset + limit);
@@ -40,9 +47,33 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+    const origin = url.origin;
 
     if (path === "/health") {
       return new Response("ok", { status: 200 });
+    }
+
+    if (path === "/.well-known/did.json") {
+      const serviceDid = buildServiceDid(env, origin);
+      return new Response(
+        JSON.stringify({
+          id: serviceDid,
+          service: [
+            {
+              id: "#feed",
+              type: "BskyFeedGenerator",
+              serviceEndpoint: origin,
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
     }
 
     if (path === "/xrpc/app.bsky.feed.getFeedSkeleton") {
@@ -91,7 +122,8 @@ export default {
       const feedGenUri =
         env.FEED_GENERATOR_URI ??
         "at://did:example:feed/app.bsky.feed.generator/selfhost";
-      const feedGenDid = env.FEED_GENERATOR_DID ?? "did:example:feed";
+      const feedGenDid =
+        env.FEED_GENERATOR_DID ?? buildServiceDid(env, origin);
       return new Response(
         JSON.stringify({
           did: feedGenDid,
