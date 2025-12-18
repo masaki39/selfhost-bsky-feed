@@ -6,7 +6,7 @@ import { config as loadEnv } from "dotenv";
 
 loadEnv();
 
-const FEED_PATH = path.join(process.cwd(), "data", "feed.json");
+const FEED_PATH = "data/feed.json";
 
 type FeedItem = {
   uri: string;
@@ -27,10 +27,7 @@ function toLimit(value: string | undefined, fallback: number) {
 }
 
 async function main() {
-  const identifier =
-    process.env.BSKY_APP_HANDLE ??
-    process.env.BSKY_APP_IDENTIFIER ??
-    process.env.BSKY_IDENTIFIER;
+  const identifier = process.env.BSKY_APP_HANDLE; // 例: yourname.bsky.social
   const password = process.env.BSKY_APP_PASSWORD;
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
@@ -38,7 +35,7 @@ async function main() {
 
   if (!identifier || !password) {
     throw new Error(
-      "BSKY_APP_HANDLE (or BSKY_APP_IDENTIFIER/BSKY_IDENTIFIER) と BSKY_APP_PASSWORD が必要です"
+      "BSKY_APP_HANDLE と BSKY_APP_PASSWORD が必要です (例: handle=yourname.bsky.social)"
     );
   }
 
