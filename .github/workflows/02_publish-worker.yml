@@ -2,12 +2,18 @@ name: Publish Cloudflare Worker
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Update Bluesky Feed
+    types:
+      - completed
 
 jobs:
   publish-worker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
