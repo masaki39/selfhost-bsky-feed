@@ -15,7 +15,7 @@ function buildErrorResponse(message: string, status = 502) {
 
 function resolveFeedUrl(env: Env) {
   if (env.GITHUB_OWNER && env.GITHUB_REPO) {
-    return `https://${env.GITHUB_OWNER}.github.io/${env.GITHUB_REPO}/data/feed.json`;
+    return `https://${env.GITHUB_OWNER}.github.io/${env.GITHUB_REPO}/feed.json`;
   }
   throw new Error("GITHUB_OWNER and GITHUB_REPO must be provided");
 }
