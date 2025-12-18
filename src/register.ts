@@ -27,7 +27,8 @@ async function resolveDid(agent: BskyAgent, identifier: string) {
 async function main() {
   const identifier = process.env.BSKY_APP_HANDLE;
   const password = process.env.BSKY_APP_PASSWORD;
-  const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
+  const service =
+    (process.env.BSKY_SERVICE || "").trim() || "https://bsky.social";
 
   if (!identifier || !password) {
     throw new Error(
