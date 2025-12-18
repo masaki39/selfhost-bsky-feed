@@ -19,7 +19,8 @@ BSKY_APP_PASSWORD=xxxx-xxxx-xxxx
 BSKY_SERVICE=https://bsky.social   # 省略可
 BSKY_SEARCH_QUERY=bluesky          # 省略可
 BSKY_SEARCH_LIMIT=25               # 省略可、最大100
-BSKY_SEARCH_LANG=ja               # 省略可、ISOコード
+BSKY_SEARCH_LANG=ja               # 省略可、ISOコード（またはカンマ区切りで複数指定: ja,en）
+# 省略時は全言語
 ```
 
 ## ローカル実行

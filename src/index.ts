@@ -17,6 +17,7 @@ type FeedFile = {
   generatedAt: string;
   source: string;
   query: string;
+  languages: string[];
   items: FeedItem[];
 };
 
@@ -26,13 +27,21 @@ function toLimit(value: string | undefined, fallback: number) {
   return Math.min(parsed, 100);
 }
 
+function parseLanguages(raw?: string): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 async function main() {
   const identifier = process.env.BSKY_APP_HANDLE; // 例: yourname.bsky.social
   const password = process.env.BSKY_APP_PASSWORD;
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
   const limit = toLimit(process.env.BSKY_SEARCH_LIMIT, 25);
-  const lang = process.env.BSKY_SEARCH_LANG;
+  const languages = parseLanguages(process.env.BSKY_SEARCH_LANG);
 
   if (!identifier || !password) {
     throw new Error(
@@ -43,16 +52,28 @@ async function main() {
   const agent = new BskyAgent({ service });
   await agent.login({ identifier, password });
 
-  const res = await agent.app.bsky.feed.searchPosts({
-    q: query,
-    limit,
-    lang,
-  });
-  const posts: AppBskyFeedSearchPosts.OutputSchema["posts"] = res.data.posts ?? [];
+  const postsMap = new Map<string, AppBskyFeedSearchPosts.OutputSchema["posts"][number]>();
+  const langTargets = languages.length === 0 ? [undefined] : languages;
+
+  for (const lang of langTargets) {
+    const res = await agent.app.bsky.feed.searchPosts({
+      q: query,
+      limit,
+      lang,
+    });
+    for (const post of res.data.posts ?? []) {
+      if (!postsMap.has(post.uri)) {
+        postsMap.set(post.uri, post);
+      }
+    }
+  }
+
+  const posts = Array.from(postsMap.values());
   const feed: FeedFile = {
     generatedAt: new Date().toISOString(),
     source: "bsky.searchPosts",
     query,
+    languages,
     items: posts.map((post) => ({
       uri: post.uri,
       indexedAt: post.indexedAt ?? new Date().toISOString(),
@@ -62,7 +83,7 @@ async function main() {
   await mkdir(path.dirname(FEED_PATH), { recursive: true });
   await writeFile(FEED_PATH, JSON.stringify(feed, null, 2), "utf-8");
   console.log(
-    `Wrote ${feed.items.length} posts from query "${query}" to ${FEED_PATH}`
+    `Wrote ${feed.items.length} posts from query "${query}" to ${FEED_PATH} (languages: ${languages.length ? languages.join(",") : "all"})`
   );
 }
 
