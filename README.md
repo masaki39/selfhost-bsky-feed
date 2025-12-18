@@ -56,5 +56,5 @@ BSKY_SEARCH_LANG=ja
 ## GitHub Actions
 
 - `.github/workflows/01_update-feed.yml`: runs every 5 minutes or manually; builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
-- `.github/workflows/02_publish-worker.yml`: runs manually or after `01_update-feed.yml` succeeds; injects repo context for the Worker and fetches `https://<owner>.github.io/<repo>/data/feed.json`.
+- `.github/workflows/02_publish-worker.yml`: runs manually or after `01_update-feed.yml` succeeds; deploys the Worker and then upserts the feed generator record on Bluesky using the same app password.
 - Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job. Worker uses Pages output.
