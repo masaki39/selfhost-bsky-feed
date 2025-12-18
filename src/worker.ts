@@ -1,9 +1,4 @@
-const DEFAULT_OWNER = "masaki39";
-const DEFAULT_REPO = "selfhost-bsky-feed";
-const DEFAULT_FEED_URL = `https://raw.githubusercontent.com/${DEFAULT_OWNER}/${DEFAULT_REPO}/main/data/feed.json`;
-
 type Env = {
-  FEED_URL?: string;
   GITHUB_OWNER?: string;
   GITHUB_REPO?: string;
 };
@@ -19,22 +14,20 @@ function buildErrorResponse(message: string, status = 502) {
 }
 
 function resolveFeedUrl(env: Env) {
-  if (env.FEED_URL) return env.FEED_URL;
   if (env.GITHUB_OWNER && env.GITHUB_REPO) {
     return `https://raw.githubusercontent.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/main/data/feed.json`;
   }
-  if (env.GITHUB_REPO) {
-    return `https://raw.githubusercontent.com/${DEFAULT_OWNER}/${env.GITHUB_REPO}/main/data/feed.json`;
-  }
-  if (env.GITHUB_OWNER) {
-    return `https://raw.githubusercontent.com/${env.GITHUB_OWNER}/${DEFAULT_REPO}/main/data/feed.json`;
-  }
-  return DEFAULT_FEED_URL;
+  throw new Error("GITHUB_OWNER and GITHUB_REPO must be provided");
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const feedUrl = resolveFeedUrl(env);
+    let feedUrl: string;
+    try {
+      feedUrl = resolveFeedUrl(env);
+    } catch (err) {
+      return buildErrorResponse(String(err), 500);
+    }
 
     const { pathname } = new URL(request.url);
     if (pathname === "/health") {

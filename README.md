@@ -38,8 +38,7 @@ Environment variables read by the script (set them locally via `.env` or as GitH
 - `BSKY_SEARCH_QUERY` (optional, default `bluesky`)
 - `BSKY_SEARCH_LIMIT` (optional, default `25`, max `100`)
 - `BSKY_SEARCH_LANG` (optional, ISO code like `ja` or `en`, or comma-separated list `ja,en`; defaults to all languages if unset)
-- `FEED_URL` (Worker only; URL of published `data/feed.json` when using Cloudflare Workers; if unset, uses `GITHUB_OWNER`/`GITHUB_REPO`)
-- `GITHUB_OWNER` / `GITHUB_REPO` (Worker only; used to build a raw GitHub URL when `FEED_URL` is unset; provided by the publish workflow from GitHub context)
+- `GITHUB_OWNER` / `GITHUB_REPO` (Worker only; used to build a raw GitHub URL; provided by the publish workflow from GitHub context)
 
 `.env` の例:
 

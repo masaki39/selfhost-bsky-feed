@@ -33,9 +33,7 @@ jobs:
             --name "${{ github.event.repository.name }}-worker" \
             --compatibility-date 2024-09-01 \
             --var GITHUB_OWNER=${{ github.repository_owner }} \
-            --var GITHUB_REPO=${{ github.event.repository.name }} \
-            ${FEED_URL:+--var FEED_URL=${FEED_URL}}
+            --var GITHUB_REPO=${{ github.event.repository.name }}
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          FEED_URL: ${{ secrets.FEED_URL }}

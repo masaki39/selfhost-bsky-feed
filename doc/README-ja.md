@@ -32,8 +32,7 @@ BSKY_SEARCH_LIMIT=25               # 省略可、最大100
 BSKY_SEARCH_LANG=ja               # 省略可、ISOコード（またはカンマ区切りで複数指定: ja,en）
 # 省略時は全言語
 # Cloudflare Workers 用:
-# FEED_URL を省略した場合、GITHUB_OWNER/GITHUB_REPO から raw GitHub URL を組み立てます（02_publish-worker.yml が GitHub コンテキストから自動注入）
-# 任意で FEED_URL を明示指定しても構いません
+# GITHUB_OWNER/GITHUB_REPO から raw GitHub URL を組み立てます（02_publish-worker.yml が GitHub コンテキストから自動注入）。指定が無い場合はエラーになります。
 ```
 
 ## 開発者向け（ローカル実行）
