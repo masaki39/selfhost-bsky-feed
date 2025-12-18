@@ -31,11 +31,12 @@ jobs:
         run: |
           base_name="w-${{ github.event.repository.name }}"
           sanitized_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g' | sed 's/[^a-z0-9-]/-/g')
-          npx wrangler publish src/worker.ts \
+          npx wrangler deploy src/worker.ts \
             --name "$sanitized_name" \
             --compatibility-date 2024-09-01 \
             --var GITHUB_OWNER=${{ github.repository_owner }} \
-            --var GITHUB_REPO=${{ github.event.repository.name }}
+            --var GITHUB_REPO=${{ github.event.repository.name }} \
+            --account-id "${CLOUDFLARE_ACCOUNT_ID}"
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

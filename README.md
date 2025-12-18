@@ -14,7 +14,7 @@ TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a sched
 
 Cloudflare Workers publish (optional):
 1) Set repo Secrets: `CF_API_TOKEN`, `CF_ACCOUNT_ID`.  
-2) Deploy manually with `npm run worker:publish` or rely on `02_publish-worker.yml` after feed generation.
+2) Deploy manually with `npm run worker:publish` or rely on `02_publish-worker.yml` after feed generation. (If you prefer, name secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` to match Wrangler vars; the workflow reads those.)
 3) `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER`/`GITHUB_REPO` from GitHub context and sets Worker name to `${{ github.event.repository.name }}-worker`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
 
 ## For developers (local)
