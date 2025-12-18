@@ -2,10 +2,6 @@
 
 TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a scheduled GitHub Action and writes feed JSON you can later publish via Pages/Workers. Uses the official `@atproto/api` `BskyAgent` to search posts.
 
-Docs note: The primary documentation is maintained in Japanese (`doc/README-ja.md`) by the author. This English README is translated from that source via LLM; future updates should edit the Japanese version first, then translate.  
-- 日本語: [doc/README-ja.md](doc/README-ja.md)
-- English: this file
-
 ## For remote users (GitHub Actions only)
 
 1) Set repository Secrets:  
