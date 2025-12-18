@@ -21,7 +21,7 @@ function getRepoName() {
 async function resolveDid(agent: BskyAgent, identifier: string) {
   if (identifier.startsWith("did:")) return identifier;
   const res = await agent.resolveHandle({ handle: identifier });
-  return res.did;
+  return res.data.did;
 }
 
 async function main() {
