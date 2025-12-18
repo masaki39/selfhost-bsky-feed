@@ -35,7 +35,7 @@ async function main() {
 
   if (!identifier || !password) {
     throw new Error(
-      "BSKY_APP_HANDLE と BSKY_APP_PASSWORD が必要です (例: handle=yourname.bsky.social)"
+      "BSKY_APP_HANDLE and BSKY_APP_PASSWORD are required (e.g., handle=yourname.bsky.social)"
     );
   }
 
