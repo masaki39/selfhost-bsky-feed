@@ -22,6 +22,7 @@ Environment variables read by the script (set them locally via `.env` or as GitH
 - `BSKY_SERVICE` (optional, default `https://bsky.social`)
 - `BSKY_SEARCH_QUERY` (optional, default `bluesky`)
 - `BSKY_SEARCH_LIMIT` (optional, default `25`, max `100`)
+- `BSKY_SEARCH_LANG` (optional, ISO code like `ja` or `en`)
 
 `.env` の例:
 
@@ -29,6 +30,7 @@ Environment variables read by the script (set them locally via `.env` or as GitH
 BSKY_APP_HANDLE=your.handle
 BSKY_APP_PASSWORD=xxxx-xxxx-xxxx
 BSKY_SEARCH_QUERY=bluesky
+BSKY_SEARCH_LANG=ja
 ```
 
 ## GitHub Actions

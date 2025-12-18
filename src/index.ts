@@ -32,6 +32,7 @@ async function main() {
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
   const limit = toLimit(process.env.BSKY_SEARCH_LIMIT, 25);
+  const lang = process.env.BSKY_SEARCH_LANG;
 
   if (!identifier || !password) {
     throw new Error(
@@ -42,7 +43,11 @@ async function main() {
   const agent = new BskyAgent({ service });
   await agent.login({ identifier, password });
 
-  const res = await agent.app.bsky.feed.searchPosts({ q: query, limit });
+  const res = await agent.app.bsky.feed.searchPosts({
+    q: query,
+    limit,
+    lang,
+  });
   const posts: AppBskyFeedSearchPosts.OutputSchema["posts"] = res.data.posts ?? [];
   const feed: FeedFile = {
     generatedAt: new Date().toISOString(),
