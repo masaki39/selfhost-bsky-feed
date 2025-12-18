@@ -18,7 +18,7 @@ Cloudflare Workers への公開（任意）:
 1. Wrangler を使える環境で `npm install` を行い、Secrets を設定: `CF_API_TOKEN`, `CF_ACCOUNT_ID`。  
 2. `wrangler.toml` の `FEED_URL`（または Worker 変数）に、公開済みの JSON URL（例: GitHub Pages や raw GitHub URL）を指定。  
 3. `npm run worker:publish` で手動デプロイ、またはワークフロー内で feed.json 生成後に実行するステップを追加。
-4. 付属のワークフロー `.github/workflows/01_publish-worker.yml` は GitHub コンテキストから `GITHUB_OWNER`/`GITHUB_REPO` を注入し、Secrets の `FEED_URL` があれば上書きします。フォークでも手修正なしで動かせます。
+4. 付属のワークフロー `.github/workflows/02_publish-worker.yml` は GitHub コンテキストから `GITHUB_OWNER`/`GITHUB_REPO` を注入し、Secrets の `FEED_URL` があれば上書きします。フォークでも手修正なしで動かせます。
 
 ## 環境変数
 GitHub Secrets または `.env` に設定します（Secrets 推奨）。
