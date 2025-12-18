@@ -47,9 +47,9 @@ jobs:
           (async () => {
             if (!handle) throw new Error("BSKY_APP_HANDLE is required");
             const agent = new BskyAgent({ service });
-            const did = handle.startsWith("did:")
+          const did = handle.startsWith("did:")
               ? handle
-              : (await agent.resolveHandle(handle)).did;
+              : (await agent.resolveHandle({ handle })).did;
             const feedUri = `at://${did}/app.bsky.feed.generator/${slug}`;
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `did=${did}\n`);
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `rkey=${slug}\n`);
