@@ -10,12 +10,12 @@ TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a sched
    - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG` (single or comma-separated like `ja,en`)
 2) Ensure Actions has the needed permissions: `contents: read/write`, `pages: write`, `id-token: write` (already set in the workflows).
 2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
-3) `01_update-feed.yml` publishes `data/feed.json` to GitHub Pages automatically.
+3) `01_update-feed.yml` builds and writes `data/feed.json`, then publishes it to GitHub Pages. The Pages site exposes the file at `https://<owner>.github.io/<repo>/feed.json` (no `/data` prefix because the artifact root is `./data`).
 
 Cloudflare Workers publish (optional):
-1) Set repo Secrets: `CF_API_TOKEN`, `CF_ACCOUNT_ID`.  
-2) Deploy manually with `npm run worker:publish` or rely on `02_publish-worker.yml` after feed generation. (If you prefer, name secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` to match Wrangler vars; the workflow reads those.)
-3) `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER`/`GITHUB_REPO` from GitHub context and sets Worker name to `${{ github.event.repository.name }}-worker`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
+1) Set repo Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.  
+2) Deploy manually with `npm run worker:publish` or rely on `02_publish-worker.yml` after feed generation.  
+3) `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER` / `GITHUB_REPO` into Wrangler and sets the Worker name to `${{ github.event.repository.name }}` prefixed with `w-`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
 
 ## For developers (local)
 
@@ -35,7 +35,9 @@ Environment variables read by the script (set them locally via `.env` or as GitH
 - `BSKY_SEARCH_LIMIT` (optional, default `25`, max `100`)
 - `BSKY_SEARCH_LANG` (optional, ISO code like `ja` or `en`, or comma-separated list `ja,en`; defaults to all languages if unset)
 - `GITHUB_OWNER` / `GITHUB_REPO` (Worker only; used to build a raw GitHub URL; provided by the publish workflow from GitHub context)
-  - Used to build `https://<owner>.github.io/<repo>/data/feed.json` for the Worker
+  - Builds `https://<owner>.github.io/<repo>/feed.json` for the Worker
+- `FEED_URL` (Worker override; use this if the feed JSON is hosted elsewhere)
+- `FEED_GENERATOR_URI` / `FEED_GENERATOR_DID` (Worker describe endpoint; optional)
 
 `.env` の例:
 
@@ -46,6 +48,9 @@ BSKY_SEARCH_QUERY=bluesky
 BSKY_SEARCH_LANG=ja
 # またはカンマ区切りで複数指定
 # BSKY_SEARCH_LANG=ja,en
+# Worker の describe 用（任意）
+# FEED_GENERATOR_URI=at://did:example:feed/app.bsky.feed.generator/selfhost
+# FEED_GENERATOR_DID=did:example:feed
 ```
 
 ## GitHub Actions
