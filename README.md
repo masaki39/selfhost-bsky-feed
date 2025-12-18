@@ -6,14 +6,23 @@ Docs note: The primary documentation is maintained in Japanese (`doc/README-ja.m
 - 日本語: [doc/README-ja.md](doc/README-ja.md)
 - English: this file
 
-## Development
+## For remote users (GitHub Actions only)
+
+1) Set repository Secrets:  
+   - `BSKY_APP_HANDLE` (e.g., `yourname.bsky.social`)  
+   - `BSKY_APP_PASSWORD`  
+   - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG` (single or comma-separated like `ja,en`)
+2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
+3) Outputs are written to `data/feed.json` in the workflow workspace (not committed). Add your own publish step (e.g., commit, Pages, Workers).
+
+## For developers (local)
 
 ```bash
 npm install
 npm run start
 ```
 
-`npm run start` compiles TypeScript then writes `data/feed.json` with Bluesky検索の結果を保存します。
+`npm run start` compiles TypeScript then writes `data/feed.json` with the search results.
 
 Environment variables read by the script (set them locally via `.env` or as GitHub secrets):
 
