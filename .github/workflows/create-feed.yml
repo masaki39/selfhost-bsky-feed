@@ -63,7 +63,7 @@ jobs:
           NODE
         env:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
-          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          BSKY_SERVICE: ${{ vars.BSKY_SERVICE || secrets.BSKY_SERVICE }}
           FEED_DISPLAY_NAME: ${{ vars.FEED_DISPLAY_NAME || secrets.FEED_DISPLAY_NAME }}
           FEED_DESCRIPTION: ${{ vars.FEED_DESCRIPTION || secrets.FEED_DESCRIPTION }}
 
@@ -97,7 +97,7 @@ jobs:
         env:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          BSKY_SERVICE: ${{ vars.BSKY_SERVICE || secrets.BSKY_SERVICE }}
           FEED_GENERATOR_URI: ${{ steps.feed_meta.outputs.feed_uri }}
           FEED_RKEY: ${{ steps.feed_meta.outputs.rkey }}
           FEED_DISPLAY_NAME: ${{ steps.feed_meta.outputs.display_name }}

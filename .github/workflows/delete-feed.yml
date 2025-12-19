@@ -52,14 +52,14 @@ jobs:
           NODE
         env:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
-          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          BSKY_SERVICE: ${{ vars.BSKY_SERVICE || secrets.BSKY_SERVICE }}
 
       - name: Delete feed generator record
         run: npm run delete:feed
         env:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          BSKY_SERVICE: ${{ vars.BSKY_SERVICE || secrets.BSKY_SERVICE }}
           FEED_RKEY: ${{ steps.feed_meta.outputs.rkey }}
           FEED_GENERATOR_URI: ${{ steps.feed_meta.outputs.feed_uri }}
 

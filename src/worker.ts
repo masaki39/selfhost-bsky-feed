@@ -96,6 +96,7 @@ export default {
     if (path === "/.well-known/did.json") {
       const serviceDid = buildServiceDid(env, origin);
       const serviceId = `${serviceDid}#bsky_fg`;
+      const serviceEndpoint = env.FEED_ENDPOINT ?? origin;
       return new Response(
         JSON.stringify({
           "@context": ["https://www.w3.org/ns/did/v1"],
@@ -104,7 +105,7 @@ export default {
             {
               id: serviceId,
               type: "BskyFeedGenerator",
-              serviceEndpoint: origin,
+              serviceEndpoint,
             },
           ],
         }),
