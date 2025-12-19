@@ -24,6 +24,20 @@ async function resolveDid(agent: BskyAgent, identifier: string) {
   return res.data.did;
 }
 
+function buildServiceDid(feedEndpoint?: string) {
+  if (!feedEndpoint) return undefined;
+  const hostname = new URL(feedEndpoint).hostname;
+  return `did:web:${hostname}`;
+}
+
+function parseFeedGeneratorUri(value: string) {
+  const match = value.match(
+    /^at:\/\/([^/]+)\/app\.bsky\.feed\.generator\/([^/]+)$/
+  );
+  if (!match) return undefined;
+  return { did: match[1], rkey: match[2] };
+}
+
 async function main() {
   const identifier = process.env.BSKY_APP_HANDLE;
   const password = process.env.BSKY_APP_PASSWORD;
@@ -32,18 +46,18 @@ async function main() {
 
   if (!identifier || !password) {
     throw new Error(
-      "BSKY_APP_HANDLE and BSKY_APP_PASSWORD are required (e.g., handle=yourname.bsky.social)"
+      "BSKY_APP_HANDLE and BSKY_APP_PASSWORD are required (e.g., handle=yourname.bsky.social). If your account is on a custom PDS, set BSKY_SERVICE."
     );
   }
 
   const repoName = getRepoName() ?? "feed";
-  const rkey = process.env.FEED_RKEY ?? slugify(repoName);
+  let rkey = process.env.FEED_RKEY ?? slugify(repoName);
   const displayName = process.env.FEED_DISPLAY_NAME ?? repoName;
   const description = process.env.FEED_DESCRIPTION ?? repoName;
   const feedEndpoint = process.env.FEED_ENDPOINT;
   const serviceDid =
-    process.env.FEED_SERVICE_DID ??
-    (feedEndpoint ? `did:web:${new URL(feedEndpoint).host}` : undefined);
+    process.env.FEED_SERVICE_DID ?? buildServiceDid(feedEndpoint);
+  const feedGeneratorUriEnv = process.env.FEED_GENERATOR_URI;
 
   const agent = new BskyAgent({ service });
   await agent.login({ identifier, password });
@@ -52,6 +66,25 @@ async function main() {
   if (!serviceDid) {
     throw new Error("FEED_SERVICE_DID or FEED_ENDPOINT is required");
   }
+  let feedGeneratorDid = process.env.FEED_GENERATOR_DID ?? ownerDid;
+  if (feedGeneratorUriEnv) {
+    const parsed = parseFeedGeneratorUri(feedGeneratorUriEnv);
+    if (!parsed) {
+      throw new Error(
+        "FEED_GENERATOR_URI must be at://<did>/app.bsky.feed.generator/<rkey>"
+      );
+    }
+    if (parsed.did !== ownerDid) {
+      throw new Error(
+        `FEED_GENERATOR_URI did must match owner DID (${ownerDid})`
+      );
+    }
+    feedGeneratorDid = parsed.did;
+    rkey = parsed.rkey;
+  }
+  const feedGeneratorUri =
+    feedGeneratorUriEnv ??
+    `at://${feedGeneratorDid}/app.bsky.feed.generator/${rkey}`;
   const record = {
     $type: "app.bsky.feed.generator",
     did: serviceDid,
@@ -67,8 +100,7 @@ async function main() {
     record,
   });
 
-  const uri = `at://${ownerDid}/app.bsky.feed.generator/${rkey}`;
-  console.log(`Upserted feed generator: ${uri}`);
+  console.log(`Upserted feed generator: ${feedGeneratorUri}`);
   if (feedEndpoint) {
     console.log(`Feed endpoint: ${feedEndpoint}`);
   }
