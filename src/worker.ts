@@ -206,7 +206,7 @@ export default {
       const feedInfo = getFeedGeneratorInfo(env, origin);
       return new Response(
         JSON.stringify({
-          did: feedInfo.did,
+          did: feedInfo.serviceDid,
           feeds: [{ uri: feedInfo.uri }],
         }),
         {
