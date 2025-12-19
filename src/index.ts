@@ -54,16 +54,28 @@ function buildQueryWithMuteWords(query: string, muteWords: string[]): string {
   return `${query} ${exclusions}`.trim();
 }
 
+function splitQueryParts(rawQuery: string): string[] {
+  const parts = rawQuery
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (parts.length > 0) return parts;
+  const fallback = rawQuery.trim();
+  return fallback ? [fallback] : [];
+}
+
 async function main() {
   const identifier = process.env.BSKY_APP_HANDLE; // example: yourname.bsky.social
   const password = process.env.BSKY_APP_PASSWORD;
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
-  const totalLimit = toLimit(process.env.BSKY_SEARCH_LIMIT, 100);
+  const perQueryLimit = Math.min(toLimit(process.env.BSKY_SEARCH_LIMIT, 100), 100);
   const language = parseLanguage(process.env.BSKY_SEARCH_LANG);
   const muteWords = parseMuteWords(process.env.BSKY_MUTE_WORDS);
-  const effectiveQuery = buildQueryWithMuteWords(query, muteWords);
-
+  const queryParts = splitQueryParts(query);
+  const effectiveQueries = queryParts.map((part) =>
+    buildQueryWithMuteWords(part, muteWords)
+  );
   if (!identifier || !password) {
     throw new Error(
       "BSKY_APP_HANDLE and BSKY_APP_PASSWORD are required (e.g., handle=yourname.bsky.social)"
@@ -74,36 +86,31 @@ async function main() {
   await agent.login({ identifier, password });
 
   const postsMap = new Map<string, AppBskyFeedSearchPosts.OutputSchema["posts"][number]>();
-  let remaining = totalLimit;
-  let cursor: string | undefined = undefined;
-  while (remaining > 0) {
+  for (const effectiveQuery of effectiveQueries) {
+    if (!effectiveQuery) continue;
     const res = await agent.app.bsky.feed.searchPosts({
       q: effectiveQuery,
-      limit: Math.min(100, remaining),
+      limit: perQueryLimit,
       lang: language,
       sort: "latest",
-      cursor,
     });
-    const posts = res.data.posts ?? [];
-    let added = 0;
-    for (const post of posts) {
+    for (const post of res.data.posts ?? []) {
       if (!postsMap.has(post.uri)) {
         postsMap.set(post.uri, post);
-        added += 1;
       }
-    }
-    remaining -= added;
-    cursor = res.data.cursor;
-    if (!cursor || posts.length === 0) {
-      break;
     }
   }
 
-  const posts = Array.from(postsMap.values());
+  const posts = Array.from(postsMap.values()).sort((a, b) => {
+    const aTime = a.indexedAt ?? "";
+    const bTime = b.indexedAt ?? "";
+    return bTime.localeCompare(aTime);
+  });
+  const querySummary = effectiveQueries.join(" OR ");
   const feed: FeedFile = {
     generatedAt: new Date().toISOString(),
     source: "bsky.searchPosts",
-    query: effectiveQuery,
+    query: querySummary,
     languages: language ? [language] : [],
     items: posts.map((post) => ({
       uri: post.uri,
@@ -114,7 +121,7 @@ async function main() {
   await mkdir(path.dirname(FEED_PATH), { recursive: true });
   await writeFile(FEED_PATH, JSON.stringify(feed, null, 2), "utf-8");
   console.log(
-    `Wrote ${feed.items.length} posts from query "${effectiveQuery}" to ${FEED_PATH} (languages: ${language ?? "all"})`
+    `Wrote ${feed.items.length} posts from query "${querySummary}" to ${FEED_PATH} (languages: ${language ?? "all"})`
   );
 }
 
