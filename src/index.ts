@@ -16,16 +16,10 @@ type FeedItem = {
 type FeedFile = {
   generatedAt: string;
   source: string;
-  query: string;
+  query: string[];
   languages: string[];
   items: FeedItem[];
 };
-
-function toLimit(value: string | undefined, fallback: number) {
-  const parsed = Number.parseInt(value ?? "", 10);
-  if (Number.isNaN(parsed) || parsed <= 0) return fallback;
-  return parsed;
-}
 
 function parseLanguage(raw?: string): string | undefined {
   if (!raw) return undefined;
@@ -69,7 +63,6 @@ async function main() {
   const password = process.env.BSKY_APP_PASSWORD;
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
-  const perQueryLimit = Math.min(toLimit(process.env.BSKY_SEARCH_LIMIT, 100), 100);
   const language = parseLanguage(process.env.BSKY_SEARCH_LANG);
   const muteWords = parseMuteWords(process.env.BSKY_MUTE_WORDS);
   const queryParts = splitQueryParts(query);
@@ -90,7 +83,7 @@ async function main() {
     if (!effectiveQuery) continue;
     const res = await agent.app.bsky.feed.searchPosts({
       q: effectiveQuery,
-      limit: perQueryLimit,
+      limit: 100,
       lang: language,
       sort: "latest",
     });
@@ -106,11 +99,10 @@ async function main() {
     const bTime = b.indexedAt ?? "";
     return bTime.localeCompare(aTime);
   });
-  const querySummary = effectiveQueries.join(" OR ");
   const feed: FeedFile = {
     generatedAt: new Date().toISOString(),
     source: "bsky.searchPosts",
-    query: querySummary,
+    query: effectiveQueries,
     languages: language ? [language] : [],
     items: posts.map((post) => ({
       uri: post.uri,
@@ -121,7 +113,7 @@ async function main() {
   await mkdir(path.dirname(FEED_PATH), { recursive: true });
   await writeFile(FEED_PATH, JSON.stringify(feed, null, 2), "utf-8");
   console.log(
-    `Wrote ${feed.items.length} posts from query "${querySummary}" to ${FEED_PATH} (languages: ${language ?? "all"})`
+    `Wrote ${feed.items.length} posts from queries [${effectiveQueries.join(", ")}] to ${FEED_PATH} (languages: ${language ?? "all"})`
   );
 }
 

@@ -38,7 +38,6 @@ jobs:
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
           BSKY_SERVICE: ${{ vars.BSKY_SERVICE || secrets.BSKY_SERVICE }}
           BSKY_SEARCH_QUERY: ${{ vars.BSKY_SEARCH_QUERY || secrets.BSKY_SEARCH_QUERY }}
-          BSKY_SEARCH_LIMIT: ${{ vars.BSKY_SEARCH_LIMIT || secrets.BSKY_SEARCH_LIMIT }}
           BSKY_SEARCH_LANG: ${{ vars.BSKY_SEARCH_LANG || secrets.BSKY_SEARCH_LANG }}
           BSKY_MUTE_WORDS: ${{ vars.BSKY_MUTE_WORDS || secrets.BSKY_MUTE_WORDS }}
 
