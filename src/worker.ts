@@ -60,7 +60,7 @@ export default {
           id: serviceDid,
           service: [
             {
-              id: "#feed",
+              id: "#bsky_fg",
               type: "BskyFeedGenerator",
               serviceEndpoint: origin,
             },
