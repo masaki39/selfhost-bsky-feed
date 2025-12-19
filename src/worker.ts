@@ -57,6 +57,7 @@ export default {
       const serviceDid = buildServiceDid(env, origin);
       return new Response(
         JSON.stringify({
+          "@context": ["https://www.w3.org/ns/did/v1"],
           id: serviceDid,
           service: [
             {
