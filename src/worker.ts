@@ -145,10 +145,10 @@ export default {
         );
       }
 
-      const limit = Math.min(
-        100,
-        Math.max(1, Number.parseInt(url.searchParams.get("limit") || "30", 10))
-      );
+      const rawLimit = url.searchParams.get("limit") || "30";
+      const parsedLimit = Number.parseInt(rawLimit, 10);
+      const safeLimit = Number.isFinite(parsedLimit) ? parsedLimit : 30;
+      const limit = Math.min(100, Math.max(1, safeLimit));
       const cursor = url.searchParams.get("cursor") ?? undefined;
 
       let upstream: Response;
