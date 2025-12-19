@@ -26,6 +26,11 @@ npm run start
 ```
 
 `npm run start` compiles TypeScript then writes `data/feed.json` with the search results.
+To inspect post contents from the local `data/feed.json`, run:
+
+```bash
+npm run inspect:feed
+```
 
 Environment variables read by the script (set them locally via `.env` or as GitHub secrets):
 

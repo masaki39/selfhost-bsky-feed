@@ -9,7 +9,8 @@
     "register:feed": "npm run build && node dist/register.js",
     "delete:feed": "npm run build && node dist/delete.js",
     "worker:dev": "wrangler dev src/worker.ts",
-    "worker:publish": "wrangler publish src/worker.ts --compatibility-date 2024-09-01"
+    "worker:publish": "wrangler publish src/worker.ts --compatibility-date 2024-09-01",
+    "inspect:feed": "node scripts/inspect-feed.js"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
