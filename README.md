@@ -1,86 +1,83 @@
 # selfhost-bsky-feed
 
-TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a scheduled GitHub Action and writes feed JSON you can later publish via Pages/Workers. Uses the official `@atproto/api` `AtpAgent` to search posts.
+GitHub Actions でシンプルなキーワード型フィードをセルフホストします。
 
-## For remote users (GitHub Actions only)
+## Quick setup
 
-1) Set repository Secrets:  
-   - `BSKY_APP_HANDLE` (e.g., `yourname.bsky.social`)  
-   - `BSKY_APP_PASSWORD`  
-   - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG`, `BSKY_MUTE_WORDS`
-2) Ensure Actions has the needed permissions: `contents: read/write`, `pages: write`, `id-token: write` (already set in the workflows).
-2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
-3) `update-feed.yml` builds and writes `data/feed.json`, then publishes it to GitHub Pages. The Pages site exposes the file at `https://<owner>.github.io/<repo>/feed.json` (no `/data` prefix because the artifact root is `./data`).
+### Step 1: GitHub リポジトリをセットアップ
 
-Cloudflare Workers publish (optional):
-1) Set repo Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.  
-2) Deploy manually with `npm run worker:publish` or run the `create-feed.yml` workflow.  
-3) `.github/workflows/create-feed.yml` injects `GITHUB_OWNER` / `GITHUB_REPO` into Wrangler and sets the Worker name to `${{ github.event.repository.name }}` prefixed with `w-`. It runs on manual dispatch.
-4) `.github/workflows/delete-feed.yml` deletes the feed generator record and the Worker when run manually.
+1. [GitHub のアカウントを作成](https://github.com/join)する
+2. このリポジトリ上部の `Fork` → `Create a new fork`
+3. フォークしたリポジトリを開く
+4. `Settings` → `Actions` → `General` → `Actions permissions` → `Allow all actions and reusable workflows` を選択（フォーク直後は Actions が無効になるため）
+5. `Settings` → `Pages` → `Build and deployment` → `Source` → `GitHub Actions` を選択
+6. `Settings` → `Secrets and variables` → `Actions` → `Secrets` → `New repository secret` で下記を登録
 
-## For developers (local)
+| Name | 説明 |
+| --- | --- |
+| `BSKY_APP_HANDLE` | Bluesky のハンドル名（例: `yourname.bsky.social`） |
+| `BSKY_APP_PASSWORD` | Bluesky の App Password（[設定ページ](https://bsky.app/settings/app-passwords)） |
 
-```bash
-npm install
+7. `Settings` → `Secrets and variables` → `Actions` → `Variables` → `New repository variable` で下記を登録（`BSKY_SEARCH_QUERY` は必須）
+
+| Name | 説明 |
+| --- | --- |
+| `BSKY_SEARCH_QUERY` | 検索クエリ（必須）。`,` 区切りは OR、スペースは AND、フレーズは `"..."` |
+| `BSKY_MUTE_WORDS` | カンマ区切りでミュートワード。`-word` としてクエリに付与 |
+| `BSKY_SEARCH_LANG` | 言語コード（単一のみ、例: `ja`） |
+| `BSKY_SERVICE` | PDS を指定する場合のみ（例: `https://bsky.social`） |
+
+> [!info]
+> `Update Bluesky Feed` が約 10 分おきに検索し、`data/feed.json` を GitHub Pages に公開します。  
+> GitHub の cron は厳密ではなく、10 分以上空くこともあります。  
+> Pages URL は `https://<owner>.github.io/<repo>/feed.json` です。  
+> Bluesky の検索 API は 1 回あたり最大 100 件まで取得します。  
+> Bluesky の検索 API は OR 検索がないため、OR 検索（カンマ区切り）は複数回呼び出して結合しています。語が多いと負荷が増えます。
+> AND 検索やミュートワードはいくつ設定しても負荷は増えません。
+
+### Step 2: Cloudflare Workers と連携
+
+1. [Cloudflare のアカウントを作成](https://dash.cloudflare.com/sign-up)
+2. [API トークンを発行](https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/)  
+   Workers 向けテンプレートを使うと簡単です。
+3. GitHub リポジトリに戻る
+4. `Settings` → `Secrets and variables` → `Actions` → `Secrets` → `New repository secret` で下記を登録
+
+| Name | 説明 |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API トークン |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID |
+
+5. **任意**: フィードの表示名と説明を上書きしたい場合は `Variables` に登録
+
+| Name | 説明 |
+| --- | --- |
+| `FEED_DISPLAY_NAME` | フィードの表示名 |
+| `FEED_DESCRIPTION` | フィードの説明文 |
+
+6. `Actions` タブ → `Create Bluesky Feed` → `Run workflow`
+
+> [!note]
+> `Create Bluesky Feed` は Cloudflare Workers をデプロイし、その URL を Bluesky のフィードジェネレーターとして登録します。
+> Worker 名・フィードの表示名/説明・RKEY はリポジトリ名から自動生成されます（表示名/説明は Variables で上書き可）。
+> `Delete Bluesky Feed` で削除できます。
+
+## 開発者向け
+
+Step 1 の検索ロジックはローカルでテストできます。
+
+```zsh
+npm i
+```
+
+`.env` を用意してから実行します。
+
+```zsh
 npm run start
 ```
 
-`npm run start` compiles TypeScript then writes `data/feed.json` with the search results.
-To inspect post contents from the local `data/feed.json`, run:
+`data/inspect.md` に Markdown で出力します。
 
-```bash
+```zsh
 npm run inspect:feed
 ```
-
-Environment variables read by the scripts (set them locally via `.env` or as GitHub secrets):
-
-| Name | Required | Default | Used by | Notes |
-| --- | --- | --- | --- | --- |
-| `BSKY_APP_HANDLE` | Yes | - | `src/index.ts`, `src/register.ts`, `src/delete.ts` | Example: `yourname.bsky.social` |
-| `BSKY_APP_PASSWORD` | Yes | - | `src/index.ts`, `src/register.ts`, `src/delete.ts` | App password |
-| `BSKY_SERVICE` | No | `https://bsky.social` | `src/index.ts`, `src/register.ts`, `src/delete.ts` | Set for custom PDS |
-| `BSKY_SEARCH_QUERY` | No | `bluesky` | `src/index.ts` | Search query |
-| `BSKY_SEARCH_LIMIT` | No | `100` | `src/index.ts` | Search limit |
-| `BSKY_SEARCH_LANG` | No | - | `src/index.ts` | Single language code |
-| `BSKY_MUTE_WORDS` | No | - | `src/index.ts` | Comma-separated, appended to query as `-word` |
-| `GITHUB_OWNER` | Worker only | - | `src/worker.ts` | Builds Pages URL |
-| `GITHUB_REPO` | Worker only | - | `src/worker.ts` | Builds Pages URL |
-| `FEED_URL` | Worker only | - | `src/worker.ts` | Overrides feed JSON URL |
-| `FEED_ENDPOINT` | Worker/registry | - | `src/worker.ts`, `src/register.ts` | Used to build `did:web` |
-| `FEED_SERVICE_DID` | Worker/registry | - | `src/worker.ts`, `src/register.ts` | Overrides `did:web` |
-| `FEED_GENERATOR_URI` | Worker/registry | - | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | `at://.../app.bsky.feed.generator/...` |
-| `FEED_GENERATOR_DID` | Worker | - | `src/worker.ts`, `src/register.ts` | Override DID in feed URI |
-| `FEED_RKEY` | Worker/registry | `selfhost` or repo slug | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | Feed record key |
-| `FEED_DISPLAY_NAME` | Registry only | - | `src/register.ts` | Overrides feed display name |
-| `FEED_DESCRIPTION` | Registry only | - | `src/register.ts` | Overrides feed description |
-
-## Naming and derived IDs
-
-| Source | Derived value | Where it is used |
-| --- | --- | --- |
-| GitHub repo name | Worker name `w-<repo>` | `create-feed.yml` |
-| GitHub owner + repo | Pages URL `https://<owner>.github.io/<repo>/feed.json` | `src/worker.ts` |
-| `BSKY_APP_HANDLE` | Owner DID | `src/register.ts`, `src/delete.ts` |
-| `FEED_RKEY` or repo slug | Feed URI suffix | `src/worker.ts`, `src/register.ts`, `src/delete.ts` |
-| `FEED_GENERATOR_URI` | Expected feed URI | `src/worker.ts` (`describe` + `getFeedSkeleton` check) |
-| Worker hostname | `did:web:<hostname>` | `src/worker.ts`, `src/register.ts` |
-
-`.env` の例:
-
-```
-BSKY_APP_HANDLE=your.handle
-BSKY_APP_PASSWORD=xxxx-xxxx-xxxx
-BSKY_SEARCH_QUERY=bluesky
-BSKY_SEARCH_LANG=ja
-# BSKY_MUTE_WORDS=spam,ads,bad phrase
-# Worker の describe 用（任意）
-# FEED_GENERATOR_URI=at://did:example:feed/app.bsky.feed.generator/selfhost
-# FEED_GENERATOR_DID=did:example:feed
-```
-
-## GitHub Actions
-
-- `.github/workflows/update-feed.yml`: runs every 5 minutes or manually; builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
-- `.github/workflows/create-feed.yml`: runs manually; deploys the Worker and then upserts the feed generator record on Bluesky using the same app password.
-- `.github/workflows/delete-feed.yml`: runs manually; deletes the feed generator record and the Worker.
-- Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job. Worker uses Pages output.

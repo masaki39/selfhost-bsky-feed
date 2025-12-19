@@ -62,9 +62,13 @@ async function main() {
   const identifier = process.env.BSKY_APP_HANDLE; // example: yourname.bsky.social
   const password = process.env.BSKY_APP_PASSWORD;
   const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
-  const query = process.env.BSKY_SEARCH_QUERY ?? "bluesky";
+  const query = process.env.BSKY_SEARCH_QUERY;
   const language = parseLanguage(process.env.BSKY_SEARCH_LANG);
   const muteWords = parseMuteWords(process.env.BSKY_MUTE_WORDS);
+  if (!query) {
+    throw new Error("BSKY_SEARCH_QUERY is required");
+  }
+
   const queryParts = splitQueryParts(query);
   const effectiveQueries = queryParts.map((part) =>
     buildQueryWithMuteWords(part, muteWords)
