@@ -61,7 +61,7 @@ function splitQueryParts(rawQuery: string): string[] {
 async function main() {
   const identifier = process.env.BSKY_APP_HANDLE; // example: yourname.bsky.social
   const password = process.env.BSKY_APP_PASSWORD;
-  const service = process.env.BSKY_SERVICE ?? "https://bsky.social";
+  const service = (process.env.BSKY_SERVICE || "").trim() || "https://bsky.social";
   const query = process.env.BSKY_SEARCH_QUERY;
   const language = parseLanguage(process.env.BSKY_SEARCH_LANG);
   const muteWords = parseMuteWords(process.env.BSKY_MUTE_WORDS);
