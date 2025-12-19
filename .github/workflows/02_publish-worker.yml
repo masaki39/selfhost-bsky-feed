@@ -79,9 +79,9 @@ jobs:
           npx wrangler deploy src/worker.ts \
             --name "$sanitized_name" \
             --compatibility-date 2024-09-01 \
-            --var GITHUB_OWNER=${{ github.repository_owner }} \
-            --var GITHUB_REPO=${{ github.event.repository.name }} \
-            --var FEED_GENERATOR_URI=${{ steps.feed_meta.outputs.feed_uri }} \
+            --var GITHUB_OWNER:${{ github.repository_owner }} \
+            --var GITHUB_REPO:${{ github.event.repository.name }} \
+            --var FEED_GENERATOR_URI:${{ steps.feed_meta.outputs.feed_uri }} \
             | tee wrangler.log
           worker_url=$(grep -o 'https://[^ ]*workers.dev' wrangler.log | head -n 1 || true)
           if [ -z "$worker_url" ]; then
