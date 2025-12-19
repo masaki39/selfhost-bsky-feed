@@ -10,12 +10,12 @@ TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a sched
    - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG` (single or comma-separated like `ja,en`)
 2) Ensure Actions has the needed permissions: `contents: read/write`, `pages: write`, `id-token: write` (already set in the workflows).
 2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
-3) `01_update-feed.yml` builds and writes `data/feed.json`, then publishes it to GitHub Pages. The Pages site exposes the file at `https://<owner>.github.io/<repo>/feed.json` (no `/data` prefix because the artifact root is `./data`).
+3) `update-feed.yml` builds and writes `data/feed.json`, then publishes it to GitHub Pages. The Pages site exposes the file at `https://<owner>.github.io/<repo>/feed.json` (no `/data` prefix because the artifact root is `./data`).
 
 Cloudflare Workers publish (optional):
 1) Set repo Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.  
-2) Deploy manually with `npm run worker:publish` or rely on `02_publish-worker.yml` after feed generation.  
-3) `.github/workflows/02_publish-worker.yml` injects `GITHUB_OWNER` / `GITHUB_REPO` into Wrangler and sets the Worker name to `${{ github.event.repository.name }}` prefixed with `w-`. It runs on manual dispatch or automatically after `01_update-feed.yml` completes successfully.
+2) Deploy manually with `npm run worker:publish` or run the `publish-worker.yml` workflow.  
+3) `.github/workflows/publish-worker.yml` injects `GITHUB_OWNER` / `GITHUB_REPO` into Wrangler and sets the Worker name to `${{ github.event.repository.name }}` prefixed with `w-`. It runs on manual dispatch.
 
 ## For developers (local)
 
@@ -55,6 +55,6 @@ BSKY_SEARCH_LANG=ja
 
 ## GitHub Actions
 
-- `.github/workflows/01_update-feed.yml`: runs every 5 minutes or manually; builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
-- `.github/workflows/02_publish-worker.yml`: runs manually or after `01_update-feed.yml` succeeds; deploys the Worker and then upserts the feed generator record on Bluesky using the same app password.
+- `.github/workflows/update-feed.yml`: runs every 5 minutes or manually; builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
+- `.github/workflows/publish-worker.yml`: runs manually; deploys the Worker and then upserts the feed generator record on Bluesky using the same app password.
 - Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job. Worker uses Pages output.

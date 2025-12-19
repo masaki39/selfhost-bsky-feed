@@ -2,18 +2,12 @@ name: Publish Cloudflare Worker
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - Update Bluesky Feed
-    types:
-      - completed
 
 jobs:
   publish-worker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -102,6 +96,7 @@ jobs:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
           BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          FEED_GENERATOR_URI: ${{ steps.feed_meta.outputs.feed_uri }}
           FEED_RKEY: ${{ steps.feed_meta.outputs.rkey }}
           FEED_DISPLAY_NAME: ${{ steps.feed_meta.outputs.display_name }}
           FEED_DESCRIPTION: ${{ steps.feed_meta.outputs.description }}
