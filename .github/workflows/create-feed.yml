@@ -36,8 +36,8 @@ jobs:
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/^-+|-+$/g, "") || "feed";
-          const displayName = repoName;
-          const description = repoName;
+          const displayName = process.env.FEED_DISPLAY_NAME || repoName;
+          const description = process.env.FEED_DESCRIPTION || repoName;
           (async () => {
             if (!handle) throw new Error("BSKY_APP_HANDLE is required");
             const agent = new BskyAgent({ service });
@@ -64,6 +64,8 @@ jobs:
         env:
           BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
           BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          FEED_DISPLAY_NAME: ${{ vars.FEED_DISPLAY_NAME || secrets.FEED_DISPLAY_NAME }}
+          FEED_DESCRIPTION: ${{ vars.FEED_DESCRIPTION || secrets.FEED_DESCRIPTION }}
 
       - name: Publish Worker
         id: deploy_worker

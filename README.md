@@ -1,13 +1,13 @@
 # selfhost-bsky-feed
 
-TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a scheduled GitHub Action and writes feed JSON you can later publish via Pages/Workers. Uses the official `@atproto/api` `BskyAgent` to search posts.
+TypeScript scaffold for a self-hosted Bluesky feed generator. It runs on a scheduled GitHub Action and writes feed JSON you can later publish via Pages/Workers. Uses the official `@atproto/api` `AtpAgent` to search posts.
 
 ## For remote users (GitHub Actions only)
 
 1) Set repository Secrets:  
    - `BSKY_APP_HANDLE` (e.g., `yourname.bsky.social`)  
    - `BSKY_APP_PASSWORD`  
-   - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG` (single or comma-separated like `ja,en`)
+   - Optional: `BSKY_SERVICE`, `BSKY_SEARCH_QUERY`, `BSKY_SEARCH_LIMIT`, `BSKY_SEARCH_LANG`, `BSKY_MUTE_WORDS`
 2) Ensure Actions has the needed permissions: `contents: read/write`, `pages: write`, `id-token: write` (already set in the workflows).
 2) Actions tab → enable workflow runs → manual dispatch or wait for the 5-minute schedule.
 3) `update-feed.yml` builds and writes `data/feed.json`, then publishes it to GitHub Pages. The Pages site exposes the file at `https://<owner>.github.io/<repo>/feed.json` (no `/data` prefix because the artifact root is `./data`).
@@ -40,8 +40,9 @@ Environment variables read by the scripts (set them locally via `.env` or as Git
 | `BSKY_APP_PASSWORD` | Yes | - | `src/index.ts`, `src/register.ts`, `src/delete.ts` | App password |
 | `BSKY_SERVICE` | No | `https://bsky.social` | `src/index.ts`, `src/register.ts`, `src/delete.ts` | Set for custom PDS |
 | `BSKY_SEARCH_QUERY` | No | `bluesky` | `src/index.ts` | Search query |
-| `BSKY_SEARCH_LIMIT` | No | `25` (max `100`) | `src/index.ts` | Search limit |
-| `BSKY_SEARCH_LANG` | No | - | `src/index.ts` | ISO code or comma-separated list |
+| `BSKY_SEARCH_LIMIT` | No | `100` | `src/index.ts` | Search limit |
+| `BSKY_SEARCH_LANG` | No | - | `src/index.ts` | Single language code |
+| `BSKY_MUTE_WORDS` | No | - | `src/index.ts` | Comma-separated, appended to query as `-word` |
 | `GITHUB_OWNER` | Worker only | - | `src/worker.ts` | Builds Pages URL |
 | `GITHUB_REPO` | Worker only | - | `src/worker.ts` | Builds Pages URL |
 | `FEED_URL` | Worker only | - | `src/worker.ts` | Overrides feed JSON URL |
@@ -50,6 +51,8 @@ Environment variables read by the scripts (set them locally via `.env` or as Git
 | `FEED_GENERATOR_URI` | Worker/registry | - | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | `at://.../app.bsky.feed.generator/...` |
 | `FEED_GENERATOR_DID` | Worker | - | `src/worker.ts`, `src/register.ts` | Override DID in feed URI |
 | `FEED_RKEY` | Worker/registry | `selfhost` or repo slug | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | Feed record key |
+| `FEED_DISPLAY_NAME` | Registry only | - | `src/register.ts` | Overrides feed display name |
+| `FEED_DESCRIPTION` | Registry only | - | `src/register.ts` | Overrides feed description |
 
 ## Naming and derived IDs
 
@@ -69,8 +72,7 @@ BSKY_APP_HANDLE=your.handle
 BSKY_APP_PASSWORD=xxxx-xxxx-xxxx
 BSKY_SEARCH_QUERY=bluesky
 BSKY_SEARCH_LANG=ja
-# またはカンマ区切りで複数指定
-# BSKY_SEARCH_LANG=ja,en
+# BSKY_MUTE_WORDS=spam,ads,bad phrase
 # Worker の describe 用（任意）
 # FEED_GENERATOR_URI=at://did:example:feed/app.bsky.feed.generator/selfhost
 # FEED_GENERATOR_DID=did:example:feed
