@@ -32,18 +32,35 @@ To inspect post contents from the local `data/feed.json`, run:
 npm run inspect:feed
 ```
 
-Environment variables read by the script (set them locally via `.env` or as GitHub secrets):
+Environment variables read by the scripts (set them locally via `.env` or as GitHub secrets):
 
-- `BSKY_APP_HANDLE` (例: `yourname.bsky.social`)
-- `BSKY_APP_PASSWORD`
-- `BSKY_SERVICE` (optional, default `https://bsky.social`)
-- `BSKY_SEARCH_QUERY` (optional, default `bluesky`)
-- `BSKY_SEARCH_LIMIT` (optional, default `25`, max `100`)
-- `BSKY_SEARCH_LANG` (optional, ISO code like `ja` or `en`, or comma-separated list `ja,en`; defaults to all languages if unset)
-- `GITHUB_OWNER` / `GITHUB_REPO` (Worker only; used to build a raw GitHub URL; provided by the publish workflow from GitHub context)
-  - Builds `https://<owner>.github.io/<repo>/feed.json` for the Worker
-- `FEED_URL` (Worker override; use this if the feed JSON is hosted elsewhere)
-- `FEED_GENERATOR_URI` / `FEED_GENERATOR_DID` (Worker describe endpoint; optional)
+| Name | Required | Default | Used by | Notes |
+| --- | --- | --- | --- | --- |
+| `BSKY_APP_HANDLE` | Yes | - | `src/index.ts`, `src/register.ts`, `src/delete.ts` | Example: `yourname.bsky.social` |
+| `BSKY_APP_PASSWORD` | Yes | - | `src/index.ts`, `src/register.ts`, `src/delete.ts` | App password |
+| `BSKY_SERVICE` | No | `https://bsky.social` | `src/index.ts`, `src/register.ts`, `src/delete.ts` | Set for custom PDS |
+| `BSKY_SEARCH_QUERY` | No | `bluesky` | `src/index.ts` | Search query |
+| `BSKY_SEARCH_LIMIT` | No | `25` (max `100`) | `src/index.ts` | Search limit |
+| `BSKY_SEARCH_LANG` | No | - | `src/index.ts` | ISO code or comma-separated list |
+| `GITHUB_OWNER` | Worker only | - | `src/worker.ts` | Builds Pages URL |
+| `GITHUB_REPO` | Worker only | - | `src/worker.ts` | Builds Pages URL |
+| `FEED_URL` | Worker only | - | `src/worker.ts` | Overrides feed JSON URL |
+| `FEED_ENDPOINT` | Worker/registry | - | `src/worker.ts`, `src/register.ts` | Used to build `did:web` |
+| `FEED_SERVICE_DID` | Worker/registry | - | `src/worker.ts`, `src/register.ts` | Overrides `did:web` |
+| `FEED_GENERATOR_URI` | Worker/registry | - | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | `at://.../app.bsky.feed.generator/...` |
+| `FEED_GENERATOR_DID` | Worker | - | `src/worker.ts`, `src/register.ts` | Override DID in feed URI |
+| `FEED_RKEY` | Worker/registry | `selfhost` or repo slug | `src/worker.ts`, `src/register.ts`, `src/delete.ts` | Feed record key |
+
+## Naming and derived IDs
+
+| Source | Derived value | Where it is used |
+| --- | --- | --- |
+| GitHub repo name | Worker name `w-<repo>` | `create-feed.yml` |
+| GitHub owner + repo | Pages URL `https://<owner>.github.io/<repo>/feed.json` | `src/worker.ts` |
+| `BSKY_APP_HANDLE` | Owner DID | `src/register.ts`, `src/delete.ts` |
+| `FEED_RKEY` or repo slug | Feed URI suffix | `src/worker.ts`, `src/register.ts`, `src/delete.ts` |
+| `FEED_GENERATOR_URI` | Expected feed URI | `src/worker.ts` (`describe` + `getFeedSkeleton` check) |
+| Worker hostname | `did:web:<hostname>` | `src/worker.ts`, `src/register.ts` |
 
 `.env` の例:
 
