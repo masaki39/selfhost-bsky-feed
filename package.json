@@ -1,7 +1,7 @@
 {
   "name": "selfhost-bsky-feed",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "commonjs",
   "scripts": {
     "build": "tsc --project tsconfig.json",
