@@ -1,4 +1,4 @@
-import { BskyAgent } from "@atproto/api";
+import { AtpAgent } from "@atproto/api";
 import { config as loadEnv } from "dotenv";
 
 loadEnv();
@@ -18,7 +18,7 @@ function getRepoName() {
   return parts.length > 1 ? parts[1] : parts[0];
 }
 
-async function resolveDid(agent: BskyAgent, identifier: string) {
+async function resolveDid(agent: AtpAgent, identifier: string) {
   if (identifier.startsWith("did:")) return identifier;
   const res = await agent.resolveHandle({ handle: identifier });
   return res.data.did;
@@ -48,7 +48,7 @@ async function main() {
   let rkey = process.env.FEED_RKEY ?? slugify(repoName);
   const feedGeneratorUriEnv = process.env.FEED_GENERATOR_URI;
 
-  const agent = new BskyAgent({ service });
+  const agent = new AtpAgent({ service });
   await agent.login({ identifier, password });
 
   const ownerDid = await resolveDid(agent, identifier);
