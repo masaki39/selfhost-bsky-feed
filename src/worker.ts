@@ -13,6 +13,12 @@ type FeedFile = {
   items: { uri: string; indexedAt?: string }[];
 };
 
+type FeedGeneratorInfo = {
+  serviceDid: string;
+  uri: string;
+  did: string;
+};
+
 function buildErrorResponse(message: string, status = 502) {
   return new Response(JSON.stringify({ error: message }), {
     status,
@@ -45,8 +51,32 @@ function buildFeedGeneratorUri(env: Env, serviceDid: string) {
   return `at://${did}/app.bsky.feed.generator/${rkey}`;
 }
 
+function parseFeedGeneratorUri(value: string) {
+  const match = value.match(
+    /^at:\/\/([^/]+)\/app\.bsky\.feed\.generator\/([^/]+)$/
+  );
+  if (!match) return undefined;
+  return { did: match[1], rkey: match[2] };
+}
+
+function getFeedGeneratorInfo(env: Env, origin: string): FeedGeneratorInfo {
+  const serviceDid = buildServiceDid(env, origin);
+  const uri = buildFeedGeneratorUri(env, serviceDid);
+  let did = env.FEED_GENERATOR_DID ?? serviceDid;
+  if (env.FEED_GENERATOR_URI) {
+    const parsed = parseFeedGeneratorUri(env.FEED_GENERATOR_URI);
+    if (parsed) {
+      did = parsed.did;
+    }
+  }
+  return { serviceDid, uri, did };
+}
+
 function paginate<T>(items: T[], limit: number, cursor?: string) {
-  const offset = cursor ? Number.parseInt(cursor, 10) || 0 : 0;
+  let offset = cursor ? Number.parseInt(cursor, 10) : 0;
+  if (!Number.isFinite(offset) || offset < 0) {
+    offset = 0;
+  }
   const slice = items.slice(offset, offset + limit);
   const nextOffset = offset + slice.length;
   const nextCursor = nextOffset < items.length ? String(nextOffset) : undefined;
@@ -96,8 +126,8 @@ export default {
         return buildErrorResponse(String(err), 500);
       }
 
-      const serviceDid = buildServiceDid(env, origin);
-      const expectedFeed = buildFeedGeneratorUri(env, serviceDid);
+      const feedInfo = getFeedGeneratorInfo(env, origin);
+      const expectedFeed = feedInfo.uri;
       const feed = url.searchParams.get("feed");
       if (feed !== expectedFeed) {
         return new Response(
@@ -144,7 +174,12 @@ export default {
         );
       }
 
-      const json = (await upstream.json()) as FeedFile;
+      let json: FeedFile;
+      try {
+        json = (await upstream.json()) as FeedFile;
+      } catch (err) {
+        return buildErrorResponse(`Upstream JSON parse failed: ${err}`, 502);
+      }
       if (!Array.isArray(json.items)) {
         return buildErrorResponse("Upstream schema invalid: items missing", 502);
       }
@@ -168,13 +203,11 @@ export default {
     }
 
     if (path === "/xrpc/app.bsky.feed.describeFeedGenerator") {
-      const serviceDid = buildServiceDid(env, origin);
-      const feedGenUri = buildFeedGeneratorUri(env, serviceDid);
-      const feedGenDid = env.FEED_GENERATOR_DID ?? serviceDid;
+      const feedInfo = getFeedGeneratorInfo(env, origin);
       return new Response(
         JSON.stringify({
-          did: feedGenDid,
-          feeds: [{ uri: feedGenUri }],
+          did: feedInfo.did,
+          feeds: [{ uri: feedInfo.uri }],
         }),
         {
           status: 200,
@@ -188,4 +221,14 @@ export default {
 
     return buildErrorResponse("Not Found", 404);
   },
+};
+
+export {
+  buildErrorResponse,
+  resolveFeedUrl,
+  buildServiceDid,
+  buildFeedGeneratorUri,
+  parseFeedGeneratorUri,
+  getFeedGeneratorInfo,
+  paginate,
 };

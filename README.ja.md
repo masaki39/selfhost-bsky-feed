@@ -83,3 +83,9 @@ npm run start
 ```zsh
 npm run inspect:feed
 ```
+
+ローカルテストを実行します。
+
+```zsh
+npm test
+```

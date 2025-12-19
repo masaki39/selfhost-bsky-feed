@@ -83,3 +83,9 @@ Output inspection as Markdown to `data/inspect.md`:
 ```zsh
 npm run inspect:feed
 ```
+
+Run local tests:
+
+```zsh
+npm test
+```

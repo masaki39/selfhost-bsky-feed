@@ -70,6 +70,9 @@ async function main() {
   }
 
   const queryParts = splitQueryParts(query);
+  if (queryParts.length === 0) {
+    throw new Error("BSKY_SEARCH_QUERY must include at least one term");
+  }
   const effectiveQueries = queryParts.map((part) =>
     buildQueryWithMuteWords(part, muteWords)
   );
