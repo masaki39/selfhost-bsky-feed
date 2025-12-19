@@ -1,4 +1,4 @@
-name: Publish Cloudflare Worker
+name: Create Bluesky Feed
 
 on:
   workflow_dispatch:
