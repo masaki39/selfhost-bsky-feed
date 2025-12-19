@@ -1,0 +1,74 @@
+name: Delete Bluesky Feed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete-feed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Compute feed metadata
+        id: feed_meta
+        run: |
+          node <<'NODE'
+          const { BskyAgent } = require("@atproto/api");
+          const fs = require("fs");
+          const handle = process.env.BSKY_APP_HANDLE;
+          const service = process.env.BSKY_SERVICE || "https://bsky.social";
+          const repo = process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || "";
+          const repoName = repo.includes("/") ? repo.split("/")[1] : repo || "feed";
+          const slug =
+            repoName
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "") || "feed";
+          (async () => {
+            if (!handle) throw new Error("BSKY_APP_HANDLE is required");
+            const agent = new BskyAgent({ service });
+            const did = handle.startsWith("did:")
+              ? handle
+              : (await agent.resolveHandle({ handle })).data.did;
+            const feedUri = `at://${did}/app.bsky.feed.generator/${slug}`;
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `rkey=${slug}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `feed_uri=${feedUri}\n`);
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
+        env:
+          BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
+          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+
+      - name: Delete feed generator record
+        run: npm run delete:feed
+        env:
+          BSKY_APP_HANDLE: ${{ secrets.BSKY_APP_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_SERVICE: ${{ secrets.BSKY_SERVICE }}
+          FEED_RKEY: ${{ steps.feed_meta.outputs.rkey }}
+          FEED_GENERATOR_URI: ${{ steps.feed_meta.outputs.feed_uri }}
+
+      - name: Delete Worker
+        run: |
+          base_name="w-${{ github.event.repository.name }}"
+          sanitized_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g' | sed 's/[^a-z0-9-]/-/g')
+          npx wrangler delete \
+            --name "$sanitized_name"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -16,6 +16,7 @@ Cloudflare Workers publish (optional):
 1) Set repo Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.  
 2) Deploy manually with `npm run worker:publish` or run the `publish-worker.yml` workflow.  
 3) `.github/workflows/publish-worker.yml` injects `GITHUB_OWNER` / `GITHUB_REPO` into Wrangler and sets the Worker name to `${{ github.event.repository.name }}` prefixed with `w-`. It runs on manual dispatch.
+4) `.github/workflows/delete-feed.yml` deletes the feed generator record and the Worker when run manually.
 
 ## For developers (local)
 
@@ -57,4 +58,5 @@ BSKY_SEARCH_LANG=ja
 
 - `.github/workflows/update-feed.yml`: runs every 5 minutes or manually; builds, runs the feed generator, uploads `data/feed.json` as a Pages artifact, and deploys GitHub Pages.
 - `.github/workflows/publish-worker.yml`: runs manually; deploys the Worker and then upserts the feed generator record on Bluesky using the same app password.
+- `.github/workflows/delete-feed.yml`: runs manually; deletes the feed generator record and the Worker.
 - Secrets `BSKY_APP_HANDLE` / `BSKY_APP_PASSWORD` are passed to the job. Worker uses Pages output.

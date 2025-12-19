@@ -7,6 +7,7 @@
     "build": "tsc --project tsconfig.json",
     "start": "npm run build && node dist/index.js",
     "register:feed": "npm run build && node dist/register.js",
+    "delete:feed": "npm run build && node dist/delete.js",
     "worker:dev": "wrangler dev src/worker.ts",
     "worker:publish": "wrangler publish src/worker.ts --compatibility-date 2024-09-01"
   },
