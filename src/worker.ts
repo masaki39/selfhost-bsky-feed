@@ -55,13 +55,14 @@ export default {
 
     if (path === "/.well-known/did.json") {
       const serviceDid = buildServiceDid(env, origin);
+      const serviceId = `${serviceDid}#bsky_fg`;
       return new Response(
         JSON.stringify({
           "@context": ["https://www.w3.org/ns/did/v1"],
           id: serviceDid,
           service: [
             {
-              id: "#bsky_fg",
+              id: serviceId,
               type: "BskyFeedGenerator",
               serviceEndpoint: origin,
             },
