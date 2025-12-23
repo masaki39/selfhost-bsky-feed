@@ -20,6 +20,7 @@ type FeedGeneratorInfo = {
 };
 
 function buildErrorResponse(message: string, status = 502) {
+  console.log(`[feed-worker] error: ${message} (status=${status})`);
   return new Response(JSON.stringify({ error: message }), {
     status,
     headers: {
@@ -169,6 +170,9 @@ export default {
           snippet = "";
         }
         const detail = snippet ? `; body: ${snippet}` : "";
+        console.log(
+          `[feed-worker] upstream not ok: url=${feedUrl} status=${upstream.status}${detail}`
+        );
         return buildErrorResponse(
           `Upstream responded with ${upstream.status}${detail}`,
           502
@@ -179,9 +183,17 @@ export default {
       try {
         json = (await upstream.json()) as FeedFile;
       } catch (err) {
+        console.log(
+          `[feed-worker] upstream JSON parse failed: url=${feedUrl} error=${err}`
+        );
         return buildErrorResponse(`Upstream JSON parse failed: ${err}`, 502);
       }
       if (!Array.isArray(json.items)) {
+        console.log(
+          `[feed-worker] upstream schema invalid: url=${feedUrl} keys=${Object.keys(
+            json ?? {}
+          ).join(",")}`
+        );
         return buildErrorResponse("Upstream schema invalid: items missing", 502);
       }
       const posts = json.items.filter(
