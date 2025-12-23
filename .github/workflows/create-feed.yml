@@ -73,6 +73,7 @@ jobs:
           base_name="w-${{ github.event.repository.name }}"
           sanitized_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g' | sed 's/[^a-z0-9-]/-/g')
           npx wrangler deploy src/worker.ts \
+            --config wrangler.toml \
             --name "$sanitized_name" \
             --compatibility-date 2024-09-01 \
             --var GITHUB_OWNER:${{ github.repository_owner }} \
