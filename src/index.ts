@@ -86,7 +86,7 @@ async function searchPostsWithRetry(
   agent: AtpAgent,
   params: AppBskyFeedSearchPosts.QueryParams,
   attempt = 0
-): Promise<AppBskyFeedSearchPosts.OutputSchema> {
+): Promise<AppBskyFeedSearchPosts.Response> {
   try {
     return await agent.app.bsky.feed.searchPosts(params);
   } catch (err) {
